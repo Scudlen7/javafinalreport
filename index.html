@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java 期末项目汇报 - 导师学生配对管理系统</title>
+<style>
+:root {
+  --primary: #1565C0;
+  --primary-dark: #0D47A1;
+  --primary-light: #E3F2FD;
+  --accent: #42A5F5;
+  --bg: #F8FAFC;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --white: #FFFFFF;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#presentation {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 48px 64px 72px;
+  background: var(--white);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(40px);
+  transition: opacity 0.45s ease, transform 0.45s ease, visibility 0.45s;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.slide.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(0) !important;
+  z-index: 10;
+}
+
+.slide.prev { transform: translateX(-40px); }
+
+.slide::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--accent));
+}
+
+.slide-header { flex-shrink: 0; margin-bottom: 20px; }
+
+.slide-section-tag {
+  display: inline-block;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.slide-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.slide-body::-webkit-scrollbar { width: 6px; }
+.slide-body::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+.slide-title {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent) 100%);
+  color: var(--white);
+}
+
+.slide-title::before { display: none; }
+
+.slide-title .slide-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+.slide-title h1 {
+  color: var(--white);
+  font-size: 2.4em;
+  font-weight: 700;
+  margin: 0 0 32px;
+  line-height: 1.3;
+}
+
+.slide-title blockquote {
+  background: rgba(0, 28, 72, 0.55);
+  border-left: 4px solid #FFFFFF;
+  color: #FFFFFF;
+  padding: 24px 32px;
+  border-radius: 8px;
+  font-size: 1.08em;
+  max-width: 720px;
+  text-align: left;
+  margin: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+
+.slide-title blockquote p {
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.85;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.slide-title blockquote strong {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* 除首页外，内容页字体同比例放大 15% */
+.slide:not(.slide-title) {
+  font-size: 115%;
+}
+
+.slide-toc h2 {
+  color: var(--primary-dark);
+  font-size: 1.8em;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 10px;
+}
+
+.slide-toc ol {
+  font-size: 1.15em;
+  line-height: 2.2;
+  padding-left: 1.5em;
+}
+
+.slide-toc ol a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.slide-toc ol a:hover { text-decoration: underline; }
+
+.slide-divider {
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--white) 100%);
+}
+
+.slide-divider .slide-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+.slide-divider h2 {
+  font-size: 2.2em;
+  color: var(--primary-dark);
+  text-align: center;
+  margin: 0;
+}
+
+.slide h2 {
+  color: var(--primary-dark);
+  font-size: 1.5em;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 8px;
+  margin: 0 0 16px;
+}
+
+.slide h3 {
+  color: var(--primary);
+  font-size: 1.35em;
+  margin: 0 0 14px;
+}
+
+.slide h4 {
+  color: var(--primary-dark);
+  font-size: 1.1em;
+  margin: 16px 0 10px;
+}
+
+.slide p, .slide li {
+  color: var(--text);
+  font-size: 0.95em;
+  line-height: 1.7;
+}
+
+.slide p { margin: 0 0 12px; }
+.slide strong { color: var(--primary-dark); }
+
+.slide table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88em;
+  margin: 12px 0;
+  display: table;
+  table-layout: auto;
+}
+
+.slide table thead { display: table-header-group; }
+.slide table tbody { display: table-row-group; }
+.slide table tr { display: table-row; }
+.slide table th, .slide table td { display: table-cell; }
+
+.slide table th {
+  background: var(--primary);
+  color: var(--white);
+  padding: 10px 14px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.slide table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #E2E8F0;
+  color: var(--text);
+}
+
+.slide table tr:nth-child(even) td { background: var(--primary-light); }
+
+.slide pre {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 14px 18px;
+  font-size: 0.78em;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--text);
+  margin: 12px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.slide pre code {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+.slide code {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.slide blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: 0 6px 6px 0;
+  margin: 12px 0;
+}
+
+.slide blockquote p { margin: 0; }
+
+.slide ul, .slide ol { padding-left: 1.6em; margin: 8px 0; }
+.slide ul li::marker { color: var(--primary); }
+.slide li { margin: 4px 0; }
+
+/* Syntax highlighting (light) */
+.hljs-comment, .hljs-quote { color: #64748B; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-meta { color: #0D47A1; }
+.hljs-string, .hljs-attr { color: #1565C0; }
+.hljs-number { color: #C62828; }
+.hljs-built_in, .hljs-type { color: #6F42C1; }
+.hljs-title, .hljs-section { color: #D73A49; }
+.hljs-punctuation { color: #475569; }
+
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 200;
+  transition: width 0.4s ease;
+}
+
+.nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 100;
+}
+
+.nav-btn {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover { background: var(--primary-dark); }
+.nav-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+.slide-counter { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+.nav-hint {
+  position: fixed;
+  bottom: 64px; right: 24px;
+  font-size: 12px;
+  color: var(--text-muted);
+  z-index: 99;
+  opacity: 0.7;
+}
+
+.fullscreen-btn {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.fullscreen-btn:hover { background: var(--primary-light); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div id="presentation">
+<section class="slide slide-title active" data-index="0">
+<div class="slide-body">
+<h1 id="java-期末项目汇报---导师学生配对管理系统">Java 期末项目汇报 - 导师学生配对管理系统</h1>
+<blockquote>
+<p><strong>项目名称</strong>：导师学生配对管理系统（Supervisor-Student Matching System）<br>
+<strong>开发环境</strong>：JDK 21 + Spring Boot 3.5.15 + MySQL 8.0 + Vue 3 + Vite<br>
+<strong>提交日期</strong>：2026 年 6 月 21 日</p>
+</blockquote>
+</div>
+</section>
+<section class="slide slide-toc" data-index="1">
+<div class="slide-body">
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#%E4%B8%80%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF%E4%B8%8E%E9%80%89%E9%A2%98%E6%84%8F%E4%B9%89">项目背景与选题意义</a></li>
+<li><a href="#%E4%BA%8C%E7%B3%BB%E7%BB%9F%E5%8A%9F%E8%83%BD%E6%A6%82%E8%A7%88">系统功能概览</a></li>
+<li><a href="#%E4%B8%89%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1">技术架构设计</a></li>
+<li><a href="#%E5%9B%9B%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1">数据库设计</a></li>
+<li><a href="#%E4%BA%94%E5%90%8E%E7%AB%AF%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0">后端核心实现</a></li>
+<li><a href="#%E5%85%AD%E5%89%8D%E7%AB%AF%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1">前端架构设计</a></li>
+<li><a href="#%E4%B8%83%E5%AE%89%E5%85%A8%E4%B8%8E%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6">安全与权限控制</a></li>
+<li><a href="#%E5%85%AB%E5%85%B3%E9%94%AE%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3">关键功能详解</a></li>
+<li><a href="#%E4%B9%9D%E9%83%A8%E7%BD%B2%E4%B8%8E%E8%BF%90%E7%BB%B4">部署与运维</a></li>
+<li><a href="#%E5%8D%81%E9%A1%B9%E7%9B%AE%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B">项目总结与展望</a></li>
+</ol>
+</div>
+</section>
+<section class="slide slide-divider" data-index="2">
+<div class="slide-body">
+<h2 id="一项目背景与选题意义">一、项目背景与选题意义</h2>
+</div>
+</section>
+<section class="slide" data-index="3">
+<div class="slide-header"><span class="slide-section-tag">一、项目背景与选题意义</span></div><div class="slide-body">
+<h3 id="11-背景分析">1.1 背景分析</h3>
+<p>在高校教学管理中，导师与学生之间的指导关系管理是一个典型而又繁琐的场景。以计算机学院为例，每年需要进行本科毕业设计导师分配、研究生导师双选、双创项目指导、学科竞赛指导以及社团活动指导等多种类型的师生配对。传统的人工管理方式大多依赖 Excel 表格和纸质审批，存在以下痛点：</p>
+<ul>
+<li><strong>信息分散</strong>：导师信息、学生信息、配对关系、项目进展、成果产出分散在不同的表格或系统中，难以统一管理。</li>
+<li><strong>配对效率低</strong>：师生双向选择、审核流程依赖邮件或线下沟通，周期长、容易遗漏。</li>
+<li><strong>成果追溯困难</strong>：指导过程中产出的论文、奖项、证书、照片等资料缺乏系统化的归档和检索机制。</li>
+<li><strong>权限混乱</strong>：管理员、导师、学生能看到的数据边界模糊，信息安全隐患大。</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="4">
+<div class="slide-header"><span class="slide-section-tag">一、项目背景与选题意义</span></div><div class="slide-body">
+<h3 id="12-选题意义">1.2 选题意义</h3>
+<p>本系统旨在构建一个基于 Web 的导师学生配对管理平台，核心目标如下：</p>
+<ol>
+<li><strong>统一信息管理</strong>：将导师、学生、配对、项目、成果五大数据域整合到一个系统中，打破信息孤岛。</li>
+<li><strong>规范配对流程</strong>：实现&quot;申请 → 审核 → 配对通过 → 取消&quot;的完整配对生命周期管理，状态流转清晰可控。</li>
+<li><strong>项目与成果归档</strong>：支持指导项目的创建与跟踪，以及论文、奖项、证书等成果资料的上传与展示，形成完整的指导档案。</li>
+<li><strong>细粒度权限控制</strong>：基于 RBAC（基于角色的访问控制）模型，管理员、导师、学生各司其职，数据隔离到位。</li>
+</ol>
+</div>
+</section>
+<section class="slide" data-index="5">
+<div class="slide-header"><span class="slide-section-tag">一、项目背景与选题意义</span></div><div class="slide-body">
+<h3 id="13-适用场景">1.3 适用场景</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本科毕业设计</td>
+<td>毕设导师分配、开题指导、过程管理</td>
+</tr>
+<tr>
+<td>研究生导师选择</td>
+<td>硕/博导师双选、联合培养</td>
+</tr>
+<tr>
+<td>双创项目指导</td>
+<td>大学生创新创业项目的导师指导关系管理</td>
+</tr>
+<tr>
+<td>竞赛指导</td>
+<td>学科竞赛、编程比赛的师生组队管理</td>
+</tr>
+<tr>
+<td>社团活动指导</td>
+<td>学生社团指导老师的聘任与工作记录</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="6">
+<div class="slide-body">
+<h2 id="二系统功能概览">二、系统功能概览</h2>
+<p>本系统共包含 <strong>8 大功能模块</strong>，覆盖从认证注册到成果管理的全流程：</p>
+</div>
+</section>
+<section class="slide" data-index="7">
+<div class="slide-header"><span class="slide-section-tag">二、系统功能概览</span></div><div class="slide-body">
+<h3 id="21-功能模块一览">2.1 功能模块一览</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能说明</th>
+<th>主要角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户认证</td>
+<td>图形验证码登录、学生注册、导师注册</td>
+<td>全部用户（无需认证）</td>
+</tr>
+<tr>
+<td>首页仪表盘</td>
+<td>导师数、学生数、配对数、项目数、成果数统计</td>
+<td>全部已认证用户</td>
+</tr>
+<tr>
+<td>导师管理</td>
+<td>导师信息的增删改查、按关键词/全量搜索</td>
+<td>管理员(全部)、导师(自己)</td>
+</tr>
+<tr>
+<td>学生管理</td>
+<td>学生信息的增删改查、按关键词/全量搜索</td>
+<td>管理员(全部)、学生(自己)</td>
+</tr>
+<tr>
+<td>配对管理</td>
+<td>创建配对申请、审核配对、取消配对、状态筛选</td>
+<td>管理员审核，全员可创建/查看</td>
+</tr>
+<tr>
+<td>项目管理</td>
+<td>创建项目（支持多学生参与）、项目列表查询</td>
+<td>管理员与导师可创建</td>
+</tr>
+<tr>
+<td>成果管理</td>
+<td>上传成果文件、编辑成果、删除成果、列表浏览</td>
+<td>全员可浏览，本人可编辑</td>
+</tr>
+<tr>
+<td>用户管理</td>
+<td>系统用户（sys_user）的增删改查</td>
+<td>仅管理员</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="8">
+<div class="slide-header"><span class="slide-section-tag">二、系统功能概览</span></div><div class="slide-body">
+<h3 id="22-三大角色权限矩阵">2.2 三大角色权限矩阵</h3>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th style="text-align:center">管理员 (ADMIN)</th>
+<th style="text-align:center">导师 (TEACHER)</th>
+<th style="text-align:center">学生 (STUDENT)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>仪表盘统计</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>管理用户</td>
+<td style="text-align:center">✅ 全部</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>管理导师</td>
+<td style="text-align:center">✅ 全部</td>
+<td style="text-align:center">✅ 仅自己</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>管理学生</td>
+<td style="text-align:center">✅ 全部</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">✅ 仅自己</td>
+</tr>
+<tr>
+<td>创建配对</td>
+<td style="text-align:center">✅ 指定双方</td>
+<td style="text-align:center">✅ 作为导师方</td>
+<td style="text-align:center">✅ 作为学生方</td>
+</tr>
+<tr>
+<td>审核配对</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>取消配对</td>
+<td style="text-align:center">✅ 任意</td>
+<td style="text-align:center">✅ 自己的</td>
+<td style="text-align:center">✅ 自己的</td>
+</tr>
+<tr>
+<td>创建项目</td>
+<td style="text-align:center">✅ 指定导师</td>
+<td style="text-align:center">✅ 自己的</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>上传成果</td>
+<td style="text-align:center">✅ 任意关联</td>
+<td style="text-align:center">✅ 配对学生</td>
+<td style="text-align:center">✅ 配对导师</td>
+</tr>
+<tr>
+<td>编辑成果</td>
+<td style="text-align:center">❌(仅自己上传的)</td>
+<td style="text-align:center">✅ 自己上传的</td>
+<td style="text-align:center">✅ 自己上传的</td>
+</tr>
+<tr>
+<td>删除成果</td>
+<td style="text-align:center">✅ 任意</td>
+<td style="text-align:center">✅ 自己上传的</td>
+<td style="text-align:center">✅ 自己上传的</td>
+</tr>
+<tr>
+<td>用户注册</td>
+<td style="text-align:center">❌（由被注册者本人操作）</td>
+<td style="text-align:center">导师注册</td>
+<td style="text-align:center">学生注册</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide slide-divider" data-index="9">
+<div class="slide-body">
+<h2 id="三技术架构设计">三、技术架构设计</h2>
+</div>
+</section>
+<section class="slide" data-index="10">
+<div class="slide-header"><span class="slide-section-tag">三、技术架构设计</span></div><div class="slide-body">
+<h3 id="31-整体架构">3.1 整体架构</h3>
+<p>系统采用 <strong>前后端分离</strong> 架构，前端通过 HTTP 请求（Axios）调用后端 RESTful API，后端以 JSON 格式返回数据。前后端可独立开发、独立部署，通过 Nginx 反向代理或 Vite 开发代理实现跨域通信。</p>
+<pre><code>┌─────────────────────────────────────────────────┐
+│                    浏览器 (Browser)               │
+├─────────────────────────────────────────────────┤
+│   Vue 3 + Element Plus + Pinia + Vue Router     │
+│                    前端层 (Frontend)              │
+│                  localhost:5173                   │
+└─────────────────┬───────────────────────────────┘
+                  │ HTTP (JSON)
+                  │ Axios + JWT Bearer Token
+┌─────────────────▼───────────────────────────────┐
+│           Spring Boot 3.5.15 (Java 21)          │
+│                    后端层 (Backend)               │
+│                 localhost:8081                    │
+│  ┌──────────────────────────────────────────┐  │
+│  │         Controller 层 (8 个控制器)         │  │
+│  │  Auth / Dashboard / User / Teacher        │  │
+│  │  Student / Matching / Project / Achievement│  │
+│  ├──────────────────────────────────────────┤  │
+│  │          Service 层 (9 个服务)             │  │
+│  │  业务逻辑、事务管理、权限校验               │  │
+│  ├──────────────────────────────────────────┤  │
+│  │          Mapper 层 (9 个 Mapper)           │  │
+│  │  MyBatis Plus BaseMapper + 自定义 SQL     │  │
+│  ├──────────────────────────────────────────┤  │
+│  │          Security 层                       │  │
+│  │  JWT Filter / UserDetails / BCrypt        │  │
+│  └──────────────────────────────────────────┘  │
+└─────────────────┬───────────────────────────────┘
+                  │ JDBC
+┌─────────────────▼───────────────────────────────┐
+│                MySQL 8.0                         │
+│                supervisor_db                     │
+│         10 张表（sys_user / teacher / student   │
+│        matching / project / project_student     │
+│  achievement / achievement_student / sys_log)    │
+└─────────────────────────────────────────────────┘
+</code></pre>
+</div>
+</section>
+<section class="slide" data-index="11">
+<div class="slide-header"><span class="slide-section-tag">三、技术架构设计</span></div><div class="slide-body">
+<h3 id="32-技术选型说明">3.2 技术选型说明</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>技术</th>
+<th>版本</th>
+<th>选型理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后端框架</td>
+<td>Spring Boot</td>
+<td>3.5.15</td>
+<td>企业级 Java 框架，自动配置、内嵌服务器、生态成熟</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>Java</td>
+<td>21</td>
+<td>LTS 长期支持版本，支持虚拟线程、记录类、文本块等特性</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>MyBatis Plus</td>
+<td>3.5.12</td>
+<td>MyBatis 增强工具，零 SQL 实现 CRUD，分页插件、逻辑删除开箱即用</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>Spring Security + JWT</td>
+<td>0.12.6 (jjwt)</td>
+<td>无状态认证，适合前后端分离架构</td>
+</tr>
+<tr>
+<td>密码</td>
+<td>BCrypt</td>
+<td>(Security 内置)</td>
+<td>单向哈希 + 随机盐，防彩虹表攻击</td>
+</tr>
+<tr>
+<td>校验</td>
+<td>Bean Validation</td>
+<td>(Boot 内置)</td>
+<td>声明式参数校验，<code>@Valid</code> 注解驱动</td>
+</tr>
+<tr>
+<td>前端框架</td>
+<td>Vue 3</td>
+<td>3.x</td>
+<td>Composition API，响应式数据，组合式编程</td>
+</tr>
+<tr>
+<td>构建工具</td>
+<td>Vite</td>
+<td>5.x</td>
+<td>极速 HMR，原生 ESM，替代 Webpack</td>
+</tr>
+<tr>
+<td>UI 组件库</td>
+<td>Element Plus</td>
+<td>2.x</td>
+<td>Vue 3 生态最成熟的组件库</td>
+</tr>
+<tr>
+<td>状态管理</td>
+<td>Pinia</td>
+<td>2.x</td>
+<td>Vue 3 官方推荐状态管理，轻量、类型安全</td>
+</tr>
+<tr>
+<td>HTTP 客户端</td>
+<td>Axios</td>
+<td>1.x</td>
+<td>拦截器机制，统一错误处理</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL</td>
+<td>8.0</td>
+<td>关系型数据库，事务支持，utf8mb4 字符集</td>
+</tr>
+<tr>
+<td>构建</td>
+<td>Maven</td>
+<td>3.8+</td>
+<td>Java 生态标准构建工具</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="12">
+<div class="slide-header"><span class="slide-section-tag">三、技术架构设计</span></div><div class="slide-body">
+<h3 id="33-项目结构">3.3 项目结构</h3>
+<pre><code>supervisorstu/
+├── sql/                          # 数据库脚本
+│   ├── supervisor_db.sql         # 建库建表 + 初始数据
+│   └── alter_*.sql               # 增量变更脚本
+├── docs/                         # 项目文档
+│   ├── API.md                    # API 接口文档
+│   └── DEPLOY.md                 # 部署说明
+├── src/main/java/org/example/supervisorstu/
+│   ├── SupervisorstuApplication.java  # 启动类
+│   ├── common/                   # 公共组件
+│   │   ├── BusinessException.java     # 业务异常类
+│   │   ├── Constants.java            # 系统常量
+│   │   ├── GlobalExceptionHandler.java # 全局异常处理
+│   │   ├── PageResult.java           # 分页结果封装
+│   │   └── Result.java               # 统一响应格式
+│   ├── config/                   # 配置类
+│   │   ├── DataInitializer.java      # 启动数据初始化
+│   │   ├── DatabaseSchemaMigration.java # 数据库增量迁移
+│   │   ├── MyBatisPlusConfig.java    # MyBatis Plus 插件配置
+│   │   └── WebMvcConfig.java         # 静态资源映射
+│   ├── controller/               # REST 控制器 (8个)
+│   ├── service/                  # 业务接口 (9个)
+│   │   └── impl/                 # 业务实现 (9个)
+│   ├── mapper/                   # 数据访问层 (9个)
+│   ├── entity/                   # 数据库实体类 (9个)
+│   ├── dto/                      # 请求数据传输对象 (8个)
+│   ├── vo/                       # 视图响应对象 (10个)
+│   ├── security/                 # 安全认证模块
+│   │   ├── SecurityConfig.java       # Spring Security 配置
+│   │   ├── JwtAuthenticationFilter.java # JWT 过滤器
+│   │   ├── LoginUser.java            # 认证用户主体
+│   │   └── UserDetailsServiceImpl.java # 用户加载服务
+│   └── utils/                    # 工具类
+│       ├── BatchQueryUtils.java      # 批量查询工具
+│       ├── CaptchaUtil.java          # 图形验证码工具
+│       ├── JwtUtil.java              # JWT 令牌工具
+│       └── SecurityUtils.java        # 安全与文件工具
+├── frontend/                     # Vue 3 前端
+│   └── src/
+│       ├── api/index.js              # API 接口封装
+│       ├── router/index.js           # 路由配置 + 守卫
+│       ├── store/user.js             # Pinia 用户状态
+│       ├── utils/request.js          # Axios 实例 + 拦截器
+│       ├── components/               # 通用组件
+│       └── views/                    # 页面组件 (8个)
+└── pom.xml                       # Maven 依赖管理
+</code></pre>
+</div>
+</section>
+<section class="slide slide-divider" data-index="13">
+<div class="slide-body">
+<h2 id="四数据库设计">四、数据库设计</h2>
+</div>
+</section>
+<section class="slide" data-index="14">
+<div class="slide-header"><span class="slide-section-tag">四、数据库设计</span></div><div class="slide-body">
+<h3 id="41-数据库概览">4.1 数据库概览</h3>
+<p>数据库名为 <code>supervisor_db</code>，使用 <code>utf8mb4</code> 字符集（支持 Emoji 和特殊字符），包含 <strong>10 张数据表</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>表名</th>
+<th>说明</th>
+<th style="text-align:center">核心字段数</th>
+<th>关联关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sys_user</code></td>
+<td>系统用户表（登录账号）</td>
+<td style="text-align:center">6</td>
+<td>与 teacher/student 通过 user_id 关联</td>
+</tr>
+<tr>
+<td><code>teacher</code></td>
+<td>导师信息表</td>
+<td style="text-align:center">10</td>
+<td>user_id → sys_user.id</td>
+</tr>
+<tr>
+<td><code>student</code></td>
+<td>学生信息表</td>
+<td style="text-align:center">10</td>
+<td>user_id → sys_user.id</td>
+</tr>
+<tr>
+<td><code>matching</code></td>
+<td>师生配对关系表</td>
+<td style="text-align:center">7</td>
+<td>teacher_id / student_id</td>
+</tr>
+<tr>
+<td><code>project</code></td>
+<td>指导项目表</td>
+<td style="text-align:center">9</td>
+<td>teacher_id / student_id</td>
+</tr>
+<tr>
+<td><code>project_student</code></td>
+<td>项目-学生关联表（多对多）</td>
+<td style="text-align:center">3</td>
+<td>联合唯一索引</td>
+</tr>
+<tr>
+<td><code>achievement</code></td>
+<td>成果资料表</td>
+<td style="text-align:center">9</td>
+<td>teacher_id / student_id / user_id</td>
+</tr>
+<tr>
+<td><code>achievement_student</code></td>
+<td>成果-学生关联表（多对多）</td>
+<td style="text-align:center">3</td>
+<td>联合唯一索引</td>
+</tr>
+<tr>
+<td><code>sys_log</code></td>
+<td>操作日志表</td>
+<td style="text-align:center">4</td>
+<td>user_id → sys_user.id</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="15">
+<div class="slide-header"><span class="slide-section-tag">四、数据库设计</span></div><div class="slide-body">
+<h3 id="42-er-关系图">4.2 ER 关系图</h3>
+<pre><code>┌──────────┐          ┌──────────┐
+│ sys_user │          │ sys_log  │
+│  (系统用户) │◄───────│ (操作日志) │
+└────┬─────┘          └──────────┘
+     │ 1:1 (user_id)
+     ├──────────────┐
+     ▼              ▼
+┌─────────┐   ┌──────────┐
+│ teacher │   │ student  │
+│  (导师)  │   │  (学生)  │
+└────┬────┘   └────┬─────┘
+     │ 1:N        │ 1:N
+     │            │
+     └──────┬─────┘
+            ▼
+     ┌───────────┐
+     │ matching  │  (配对关系: PENDING → APPROVED/REJECTED → CANCELLED)
+     └─────┬─────┘
+           │ (已配对通过的学生)
+           ▼
+     ┌───────────┐          ┌────────────────────┐
+     │  project  │ 1:N ───► │  project_student   │
+     │  (项目)   │          │  (项目-学生关联)      │
+     └───────────┘          └────────────────────┘
+     
+     ┌─────────────┐        ┌──────────────────────┐
+     │ achievement │ 1:N ──►│ achievement_student  │
+     │   (成果)    │        │   (成果-学生关联)      │
+     └─────────────┘        └──────────────────────┘
+</code></pre>
+</div>
+</section>
+<section class="slide" data-index="16">
+<div class="slide-header"><span class="slide-section-tag">四、数据库设计</span></div><div class="slide-body">
+<h3 id="43-关键表结构详解">4.3 关键表结构详解</h3>
+<h4 id="sys_user系统用户表">sys_user（系统用户表）</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>自增主键</td>
+</tr>
+<tr>
+<td>username</td>
+<td>VARCHAR(50) UNIQUE</td>
+<td>系统用户名（注册时默认=姓名，重名自动追加序号）</td>
+</tr>
+<tr>
+<td>email</td>
+<td>VARCHAR(100) UNIQUE</td>
+<td><strong>登录邮箱</strong>（全局唯一，作为登录凭证）</td>
+</tr>
+<tr>
+<td>password</td>
+<td>VARCHAR(255)</td>
+<td>BCrypt 加密后的密码哈希</td>
+</tr>
+<tr>
+<td>role</td>
+<td>VARCHAR(20)</td>
+<td>角色枚举：ADMIN / TEACHER / STUDENT</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TINYINT</td>
+<td>账号状态：0=禁用, 1=启用</td>
+</tr>
+<tr>
+<td>create_time</td>
+<td>DATETIME</td>
+<td>创建时间</td>
+</tr>
+</tbody>
+</table>
+<h4 id="matching配对关系表">matching（配对关系表）</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>自增主键</td>
+</tr>
+<tr>
+<td>teacher_id</td>
+<td>BIGINT FK</td>
+<td>导师 ID</td>
+</tr>
+<tr>
+<td>student_id</td>
+<td>BIGINT FK</td>
+<td>学生 ID</td>
+</tr>
+<tr>
+<td>match_type</td>
+<td>VARCHAR(50)</td>
+<td>配对类型：毕设指导 / 研究生指导 / 双创项目 / 竞赛指导 / 社团指导</td>
+</tr>
+<tr>
+<td>start_time</td>
+<td>DATETIME</td>
+<td>审核通过后设定的开始时间</td>
+</tr>
+<tr>
+<td>end_time</td>
+<td>DATETIME</td>
+<td>取消时设定的结束时间</td>
+</tr>
+<tr>
+<td>status</td>
+<td>VARCHAR(20)</td>
+<td><strong>状态机</strong>：PENDING → APPROVED / REJECTED / CANCELLED</td>
+</tr>
+<tr>
+<td>create_time</td>
+<td>DATETIME</td>
+<td>申请创建时间</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>状态流转逻辑</strong>：创建申请 → PENDING → 管理员审核 → APPROVED（通过）或 REJECTED（拒绝）；任意一方可取消 → CANCELLED</p>
+</blockquote>
+<h4 id="achievement成果表">achievement（成果表）</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>自增主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>VARCHAR(200)</td>
+<td>成果标题</td>
+</tr>
+<tr>
+<td>type</td>
+<td>VARCHAR(50)</td>
+<td>成果类型：论文 / 奖项 / 作品 / 照片 / 证书</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>描述（可选）</td>
+</tr>
+<tr>
+<td>file_url</td>
+<td>VARCHAR(500)</td>
+<td>文件存储路径（如 /upload/uuid.pdf）</td>
+</tr>
+<tr>
+<td>teacher_id</td>
+<td>BIGINT</td>
+<td>关联导师</td>
+</tr>
+<tr>
+<td>student_id</td>
+<td>BIGINT</td>
+<td>关联学生（主 student）</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>BIGINT</td>
+<td><strong>上传用户 ID</strong>（sys_user.id），用于编辑权限判定</td>
+</tr>
+<tr>
+<td>create_time</td>
+<td>DATETIME</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>deleted</td>
+<td>TINYINT</td>
+<td>逻辑删除标记（MyBatis Plus @TableLogic）</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="17">
+<div class="slide-header"><span class="slide-section-tag">四、数据库设计</span></div><div class="slide-body">
+<h3 id="44-设计亮点">4.4 设计亮点</h3>
+<ol>
+<li>
+<p><strong>账号与身份分离</strong>：<code>sys_user</code> 负责登录认证，<code>teacher</code> / <code>student</code> 负责业务属性。一个用户账号通过 <code>user_id</code> 外键关联一个身份实体，实现了认证层与业务层的解耦。</p>
+</li>
+<li>
+<p><strong>多对多关联表</strong>：<code>project_student</code> 和 <code>achievement_student</code> 使用独立的关联表 + 联合唯一索引，支持一个项目/成果关联多个学生，避免了单字段逗号分隔的低效设计。</p>
+</li>
+<li>
+<p><strong>逻辑删除</strong>：导师、学生、项目、成果表均使用 MyBatis Plus 的逻辑删除功能（<code>deleted</code> 字段），删除操作不会真正移除数据，保证历史数据的完整性和可追溯性。</p>
+</li>
+<li>
+<p><strong>邮箱登录</strong>：采用 <code>email</code> 作为全局唯一登录凭证，方便用户记忆，同时 <code>username</code> 用姓名自动生成，重名按序追加数字后缀，友好又灵活。</p>
+</li>
+<li>
+<p><strong>增量迁移机制</strong>：<code>DatabaseSchemaMigration</code> 类在应用启动时自动检测并补全缺失的表/字段，支持从旧版本数据库平滑升级，无需手动执行 ALTER 脚本。</p>
+</li>
+</ol>
+</div>
+</section>
+<section class="slide slide-divider" data-index="18">
+<div class="slide-body">
+<h2 id="五后端核心实现">五、后端核心实现</h2>
+</div>
+</section>
+<section class="slide" data-index="19">
+<div class="slide-header"><span class="slide-section-tag">五、后端核心实现</span></div><div class="slide-body">
+<h3 id="51-分层架构详解">5.1 分层架构详解</h3>
+<p>后端严格遵循 <strong>Controller → Service → Mapper</strong> 三层架构，各层职责清晰：</p>
+<h4 id="controller-层8-个控制器">Controller 层（8 个控制器）</h4>
+<p>每个控制器负责一个业务域的请求接入，统一使用 <code>@RestController</code> + <code>@RequestMapping</code>：</p>
+<table>
+<thead>
+<tr>
+<th>控制器</th>
+<th>路由前缀</th>
+<th>主要端点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AuthController</code></td>
+<td><code>/api/auth</code></td>
+<td>GET captcha, POST login, POST register/student, POST register/teacher</td>
+</tr>
+<tr>
+<td><code>DashboardController</code></td>
+<td><code>/api/dashboard</code></td>
+<td>GET stats</td>
+</tr>
+<tr>
+<td><code>UserController</code></td>
+<td><code>/api/user</code></td>
+<td>GET list, POST, PUT /{id}, DELETE /{id}</td>
+</tr>
+<tr>
+<td><code>TeacherController</code></td>
+<td><code>/api/teacher</code></td>
+<td>GET list, GET /{id}, POST, PUT /{id}, DELETE /{id}</td>
+</tr>
+<tr>
+<td><code>StudentController</code></td>
+<td><code>/api/student</code></td>
+<td>GET list, GET /{id}, POST, PUT /{id}, DELETE /{id}</td>
+</tr>
+<tr>
+<td><code>MatchingController</code></td>
+<td><code>/api/matching</code></td>
+<td>POST create, GET list, PUT audit/{id}, PUT cancel/{id}</td>
+</tr>
+<tr>
+<td><code>ProjectController</code></td>
+<td><code>/api/project</code></td>
+<td>POST, GET list</td>
+</tr>
+<tr>
+<td><code>AchievementController</code></td>
+<td><code>/api/achievement</code></td>
+<td>POST upload(multipart), PUT /{id}, GET list, DELETE /{id}</td>
+</tr>
+</tbody>
+</table>
+<h4 id="service-层9-个服务接口--实现">Service 层（9 个服务接口 + 实现）</h4>
+<p>服务层是业务逻辑的核心，关键服务如下：</p>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th>核心职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AuthService</code></td>
+<td>验证码生成、邮箱密码认证、JWT 签发</td>
+</tr>
+<tr>
+<td><code>RegisterService</code></td>
+<td>学生/导师注册事务（sys_user + student/teacher 双表写入）</td>
+</tr>
+<tr>
+<td><code>MatchingService</code></td>
+<td>配对申请的创建（自动绑定当前用户身份）、列表查询（角色数据隔离）、审核与取消</td>
+</tr>
+<tr>
+<td><code>ProjectService</code></td>
+<td>项目创建（验证学生必须是已配对通过的）、多学生关联、列表查询</td>
+</tr>
+<tr>
+<td><code>AchievementService</code></td>
+<td>成果上传（文件验证与存储）、编辑（权限校验）、删除（物理文件清理）、列表查询（计算 editable 标记）</td>
+</tr>
+<tr>
+<td><code>SysUserService</code></td>
+<td>管理员的用户 CRUD 操作</td>
+</tr>
+<tr>
+<td><code>TeacherService</code> / <code>StudentService</code></td>
+<td>导师/学生实体的 CRUD</td>
+</tr>
+<tr>
+<td><code>DashboardService</code></td>
+<td>五维度统计数查询</td>
+</tr>
+</tbody>
+</table>
+<h4 id="mapper-层9-个-mapper-接口">Mapper 层（9 个 Mapper 接口）</h4>
+<p>全部继承 MyBatis Plus 的 <code>BaseMapper&lt;T&gt;</code>，零 XML 配置实现基础 CRUD。其中两个 Mapper 包含自定义 SQL 注解：</p>
+<ul>
+<li><strong><code>ProjectStudentMapper</code></strong>：使用 <code>@Select</code> 注解实现项目-学生 JOIN 查询，用 <code>&lt;foreach&gt;</code> 动态 SQL 支持批量 ID 查询。</li>
+<li><strong><code>AchievementStudentMapper</code></strong>：同样使用 <code>@Select</code> + <code>&lt;foreach&gt;</code> 注解实现成果-学生关联 JOIN 查询。</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="20">
+<div class="slide-header"><span class="slide-section-tag">五、后端核心实现</span></div><div class="slide-body">
+<h3 id="52-统一响应格式">5.2 统一响应格式</h3>
+<p>所有 API 返回统一封装为 <code>Result&lt;T&gt;</code>：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;message&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;success&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> ... <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>分页接口额外封装为 <code>PageResult&lt;T&gt;</code>：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;message&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;success&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;total&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">100</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;records&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span> ... <span class="hljs-punctuation">]</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<blockquote>
+<p><strong>设计优势</strong>：前端无需判断不同接口的返回格式，统一通过 <code>res.code === 200</code> 判定请求是否成功，降低了前后端联调成本。</p>
+</blockquote>
+</div>
+</section>
+<section class="slide" data-index="21">
+<div class="slide-header"><span class="slide-section-tag">五、后端核心实现</span></div><div class="slide-body">
+<h3 id="53-全局异常处理">5.3 全局异常处理</h3>
+<p><code>GlobalExceptionHandler</code> 使用 <code>@RestControllerAdvice</code> 统一拦截所有异常：</p>
+<table>
+<thead>
+<tr>
+<th>异常类型</th>
+<th style="text-align:center">HTTP 状态码</th>
+<th>处理逻辑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BusinessException</code></td>
+<td style="text-align:center">400</td>
+<td>返回自定义错误码和消息</td>
+</tr>
+<tr>
+<td><code>MethodArgumentNotValidException</code></td>
+<td style="text-align:center">400</td>
+<td>提取第一个字段校验失败信息</td>
+</tr>
+<tr>
+<td><code>MissingServletRequestParameterException</code></td>
+<td style="text-align:center">400</td>
+<td>提示缺少的必要参数名</td>
+</tr>
+<tr>
+<td><code>MaxUploadSizeExceededException</code></td>
+<td style="text-align:center">400</td>
+<td>提示文件大小超限</td>
+</tr>
+<tr>
+<td><code>BadCredentialsException</code></td>
+<td style="text-align:center">401</td>
+<td>统一提示 &quot;邮箱或密码错误&quot;</td>
+</tr>
+<tr>
+<td><code>AccessDeniedException</code></td>
+<td style="text-align:center">403</td>
+<td>提示权限不足</td>
+</tr>
+<tr>
+<td><code>Exception</code>（兜底）</td>
+<td style="text-align:center">500</td>
+<td>记录异常堆栈日志，返回通用错误</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>设计优势</strong>：Controller 代码中无需编写 try-catch 块，抛出 <code>BusinessException</code> 即可由全局处理器自动转换为标准 JSON 响应，代码更简洁。</p>
+</blockquote>
+</div>
+</section>
+<section class="slide" data-index="22">
+<div class="slide-header"><span class="slide-section-tag">五、后端核心实现</span></div><div class="slide-body">
+<h3 id="54-dto--vo--entity-三层对象设计">5.4 DTO / VO / Entity 三层对象设计</h3>
+<p>项目严格区分三组对象，实现数据流转的解耦：</p>
+<table>
+<thead>
+<tr>
+<th>对象类型</th>
+<th>包路径</th>
+<th>用途</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Entity</strong></td>
+<td><code>entity/</code></td>
+<td>与数据库表一一映射，由 MyBatis Plus 管理</td>
+<td><code>Teacher</code>, <code>Student</code>, <code>Matching</code></td>
+</tr>
+<tr>
+<td><strong>DTO</strong></td>
+<td><code>dto/</code></td>
+<td>接收前端请求参数，带 JSR-303 校验注解</td>
+<td><code>LoginDTO</code>, <code>ProjectDTO</code>, <code>StudentRegisterDTO</code></td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td><code>vo/</code></td>
+<td>返回给前端的视图对象，可包含跨表聚合字段</td>
+<td><code>MatchingVO</code>(含 teacherName、studentName), <code>AchievementVO</code>(含 editable、uploaderName)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>设计优势</strong>：Entity 不直接暴露给前端，避免了敏感字段泄露（如 <code>password</code>）；VO 可以灵活组装多表聚合数据（如 <code>MatchingVO</code> 同时包含导师姓名和学生姓名的冗余字段），减少前端二次查询。</p>
+</blockquote>
+</div>
+</section>
+<section class="slide slide-divider" data-index="23">
+<div class="slide-body">
+<h2 id="六前端架构设计">六、前端架构设计</h2>
+</div>
+</section>
+<section class="slide" data-index="24">
+<div class="slide-header"><span class="slide-section-tag">六、前端架构设计</span></div><div class="slide-body">
+<h3 id="61-前端技术栈">6.1 前端技术栈</h3>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vue 3 (Composition API)</td>
+<td>响应式 UI 框架</td>
+</tr>
+<tr>
+<td>Vite</td>
+<td>构建与开发服务器（HMR 热更新）</td>
+</tr>
+<tr>
+<td>Element Plus</td>
+<td>UI 组件库（Table、Form、Dialog、Upload 等）</td>
+</tr>
+<tr>
+<td>Pinia</td>
+<td>全局状态管理（用户 token、角色、个人信息）</td>
+</tr>
+<tr>
+<td>Vue Router</td>
+<td>前端路由（含导航守卫）</td>
+</tr>
+<tr>
+<td>Axios</td>
+<td>HTTP 请求（含请求/响应拦截器）</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="25">
+<div class="slide-header"><span class="slide-section-tag">六、前端架构设计</span></div><div class="slide-body">
+<h3 id="62-路由设计">6.2 路由设计</h3>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>组件</th>
+<th>权限</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/login</code></td>
+<td>Login.vue</td>
+<td>公开</td>
+<td>登录页面（含验证码）</td>
+</tr>
+<tr>
+<td><code>/register</code></td>
+<td>Register.vue</td>
+<td>公开</td>
+<td>学生/导师注册</td>
+</tr>
+<tr>
+<td><code>/dashboard</code></td>
+<td>Dashboard.vue</td>
+<td>认证用户</td>
+<td>首页统计仪表盘</td>
+</tr>
+<tr>
+<td><code>/teacher</code></td>
+<td>Teacher.vue</td>
+<td>认证用户</td>
+<td>导师列表与管理</td>
+</tr>
+<tr>
+<td><code>/student</code></td>
+<td>Student.vue</td>
+<td>认证用户</td>
+<td>学生列表与管理</td>
+</tr>
+<tr>
+<td><code>/matching</code></td>
+<td>Matching.vue</td>
+<td>认证用户</td>
+<td>配对申请与审核</td>
+</tr>
+<tr>
+<td><code>/project</code></td>
+<td>Project.vue</td>
+<td>认证用户</td>
+<td>项目浏览与创建</td>
+</tr>
+<tr>
+<td><code>/achievement</code></td>
+<td>Achievement.vue</td>
+<td>认证用户</td>
+<td>成果上传与展示</td>
+</tr>
+<tr>
+<td><code>/user</code></td>
+<td>User.vue</td>
+<td>仅管理员</td>
+<td>系统用户管理</td>
+</tr>
+</tbody>
+</table>
+<p>路由守卫 (<code>router.beforeEach</code>) 逻辑：</p>
+<ol>
+<li>非公开页面（无 <code>meta.public</code>）且无 Token → 重定向到 <code>/login</code></li>
+<li>页面有 <code>meta.roles</code> 限制且当前用户角色不在允许列表中 → 重定向到 <code>/dashboard</code></li>
+</ol>
+</div>
+</section>
+<section class="slide" data-index="26">
+<div class="slide-header"><span class="slide-section-tag">六、前端架构设计</span></div><div class="slide-body">
+<h3 id="63-状态管理pinia">6.3 状态管理（Pinia）</h3>
+<p><code>useUserStore</code> 管理全局用户状态：</p>
+<pre><code>token (localStorage 持久化)
+role (ADMIN / TEACHER / STUDENT)
+userInfo (id, username, email, name, teacherId, studentId)
+</code></pre>
+<p>计算属性：</p>
+<ul>
+<li><code>isAdmin</code> / <code>isTeacher</code> / <code>isStudent</code>：角色判定</li>
+<li><code>userName</code>：优先显示 name → email → username</li>
+</ul>
+<p>核心方法：</p>
+<ul>
+<li><code>setLogin(data)</code>：登录成功后存储 token + role + userInfo</li>
+<li><code>logout()</code>：清除所有 localStorage 数据</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="27">
+<div class="slide-header"><span class="slide-section-tag">六、前端架构设计</span></div><div class="slide-body">
+<h3 id="64-axios-拦截器">6.4 Axios 拦截器</h3>
+<p><strong>请求拦截器</strong>：自动从 localStorage 读取 token 并添加到 <code>Authorization: Bearer {token}</code> 请求头。</p>
+<p><strong>响应拦截器</strong>：</p>
+<ol>
+<li><code>res.code !== 200</code> → 弹出错误提示；若 code=401 则清除本地存储并跳转登录页</li>
+<li>HTTP 状态码错误（如网络断开）→ 弹出错误提示；若 401 同样跳转登录</li>
+</ol>
+<blockquote>
+<p><strong>设计优势</strong>：所有 API 请求无需手动处理 token 注入和异常弹出，统一由拦截器完成，减少 8 个页面视图中的重复代码。</p>
+</blockquote>
+</div>
+</section>
+<section class="slide slide-divider" data-index="28">
+<div class="slide-body">
+<h2 id="七安全与权限控制">七、安全与权限控制</h2>
+</div>
+</section>
+<section class="slide" data-index="29">
+<div class="slide-header"><span class="slide-section-tag">七、安全与权限控制</span></div><div class="slide-body">
+<h3 id="71-认证流程">7.1 认证流程</h3>
+<pre><code>用户访问系统
+    │
+    ▼
+GET /api/auth/captcha  →  返回 {captchaKey, captchaImage (Base64 PNG)}
+    │
+    ▼
+POST /api/auth/login {email, password, captchaKey, captcha}
+    │
+    ▼ (验证码校验通过)
+Spring Security AuthenticationManager.authenticate()
+    │
+    ▼ (BCrypt 密码比对)
+UserDetailsServiceImpl.loadUserByUsername(email)
+    │ (查询 sys_user + 关联 teacher/student)
+    ▼
+JwtUtil.generateToken(userId, email, role)
+    │ (HMAC-SHA256 签名, 24h 过期)
+    ▼
+返回 {token, role, userInfo}
+    │
+    ▼
+前端存储 token → 后续请求携带 Authorization: Bearer {token}
+    │
+    ▼
+JwtAuthenticationFilter 拦截请求 → 解析 token → 注入 SecurityContext
+</code></pre>
+</div>
+</section>
+<section class="slide" data-index="30">
+<div class="slide-header"><span class="slide-section-tag">七、安全与权限控制</span></div><div class="slide-body">
+<h3 id="72-jwt-设计">7.2 JWT 设计</h3>
+<p>JWT Token 的 Payload 包含：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;sub&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;user@example.com&quot;</span><span class="hljs-punctuation">,</span>   <span class="hljs-comment">// 邮箱作为 subject</span>
+  <span class="hljs-attr">&quot;userId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;username&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;张三&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;role&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;STUDENT&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;iat&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1719000000</span><span class="hljs-punctuation">,</span>           <span class="hljs-comment">// 签发时间</span>
+  <span class="hljs-attr">&quot;exp&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1719086400</span>            <span class="hljs-comment">// 过期时间 (签发时间 + 86400000ms)</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<ul>
+<li><strong>签名算法</strong>：HMAC-SHA256，密钥从 <code>application.properties</code> 的 <code>jwt.secret</code> 读取</li>
+<li><strong>有效期</strong>：24 小时</li>
+<li><strong>无状态</strong>：服务端不存储 session，所有必要信息编码在 token 中</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="31">
+<div class="slide-header"><span class="slide-section-tag">七、安全与权限控制</span></div><div class="slide-body">
+<h3 id="73-rbac-权限模型">7.3 RBAC 权限模型</h3>
+<p>系统定义了三种角色常量：</p>
+<pre><code class="language-java">ROLE_ADMIN   = <span class="hljs-string">&quot;ADMIN&quot;</span>    <span class="hljs-comment">// 超级管理员</span>
+ROLE_TEACHER = <span class="hljs-string">&quot;TEACHER&quot;</span>  <span class="hljs-comment">// 导师</span>
+ROLE_STUDENT = <span class="hljs-string">&quot;STUDENT&quot;</span>  <span class="hljs-comment">// 学生</span>
+</code></pre>
+<p>权限控制分为两个层级：</p>
+<p><strong>1. 接口级权限</strong>（Spring Security <code>@PreAuthorize</code>）：</p>
+<pre><code class="language-java"><span class="hljs-meta">@PreAuthorize(&quot;hasRole(&#x27;ADMIN&#x27;)&quot;)</span>                    <span class="hljs-comment">// 仅管理员</span>
+<span class="hljs-meta">@PreAuthorize(&quot;hasAnyRole(&#x27;ADMIN&#x27;, &#x27;TEACHER&#x27;)&quot;)</span>      <span class="hljs-comment">// 管理员或导师</span>
+</code></pre>
+<p><strong>2. 数据级权限</strong>（Service 层手动判断）：</p>
+<ul>
+<li>导师/学生只能查看与自己相关的配对、项目、成果</li>
+<li>导师只能编辑/删除自己上传的成果</li>
+<li>管理员拥有全量数据访问权</li>
+</ul>
+<p><code>SecurityUtils</code> 工具类提供了便捷的静态方法：</p>
+<pre><code class="language-java">SecurityUtils.getLoginUser()   <span class="hljs-comment">// 获取当前登录用户</span>
+SecurityUtils.isAdmin()        <span class="hljs-comment">// 是否管理员</span>
+SecurityUtils.isTeacher()      <span class="hljs-comment">// 是否导师</span>
+SecurityUtils.isStudent()      <span class="hljs-comment">// 是否学生</span>
+</code></pre>
+</div>
+</section>
+<section class="slide" data-index="32">
+<div class="slide-header"><span class="slide-section-tag">七、安全与权限控制</span></div><div class="slide-body">
+<h3 id="74-密码安全">7.4 密码安全</h3>
+<ul>
+<li>使用 <strong>BCrypt</strong> 单向哈希算法，自动生成随机盐，同一密码每次加密结果不同</li>
+<li>即使数据库泄露，攻击者也无法还原原始密码</li>
+<li><code>DataInitializer</code> 启动时自动检测并重置默认账号密码为 <code>123456</code></li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="33">
+<div class="slide-header"><span class="slide-section-tag">七、安全与权限控制</span></div><div class="slide-body">
+<h3 id="75-其他安全措施">7.5 其他安全措施</h3>
+<table>
+<thead>
+<tr>
+<th>措施</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CSRF 防护</td>
+<td>关闭（前后端分离 + 无状态 Token，无 Session，CSRF 攻击面极小）</td>
+</tr>
+<tr>
+<td>CORS 配置</td>
+<td>允许所有来源（开发环境），生产环境收敛为具体域名</td>
+</tr>
+<tr>
+<td>文件类型校验</td>
+<td>仅允许 jpg / jpeg / png / pdf / doc / docx 上传</td>
+</tr>
+<tr>
+<td>路径穿越防护</td>
+<td>文件 URL 中禁止包含 <code>..</code>、<code>/</code>、<code>\</code> 字符</td>
+</tr>
+<tr>
+<td>登录失败信息</td>
+<td>统一返回 &quot;邮箱或密码错误&quot;，不区分错误原因，防枚举攻击</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide slide-divider" data-index="34">
+<div class="slide-body">
+<h2 id="八关键功能详解">八、关键功能详解</h2>
+</div>
+</section>
+<section class="slide" data-index="35">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="81-图形验证码">8.1 图形验证码</h3>
+<p><code>CaptchaUtil</code> 自研验证码工具，<strong>不依赖任何第三方验证码库</strong>：</p>
+<ul>
+<li>从 31 个字符池（<code>23456789ABCDEFGHJKLMNPQRSTUVWXYZ</code>，剔除了易混淆的 0/O/1/I）中随机抽取 4 位</li>
+<li>使用 Java AWT <code>Graphics2D</code> 绘制 120×40 像素的 PNG 图片</li>
+<li>加入 6 条随机干扰线和 3 种随机颜色</li>
+<li>每个字符独立随机旋转 ±15°</li>
+<li>验证码存储在 <code>ConcurrentHashMap</code> 内存中，有效期 5 分钟，<strong>一次性消费（校验后立即删除）</strong></li>
+<li>最终返回 Base64 编码的 Data URI，前端直接 <code>&lt;img src=&quot;data:image/png;base64,...&quot;&gt;</code> 展示</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="36">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="82-邮箱登录--自注册">8.2 邮箱登录 + 自注册</h3>
+<p>系统摒弃了传统的用户名密码登录，改用 <strong>邮箱作为全局唯一登录凭证</strong>：</p>
+<ul>
+<li><strong>注册</strong>：学生/导师通过公开接口自行注册，系统自动在 <code>sys_user</code> 表创建用户（username=姓名，重名自动追加序号）并在 <code>student</code>/<code>teacher</code> 表创建身份记录</li>
+<li><strong>登录</strong>：输入邮箱 + 密码 + 验证码，Spring Security 的 <code>DaoAuthenticationProvider</code> 通过 <code>UserDetailsServiceImpl</code> 加载用户</li>
+<li><strong>重名处理</strong>：<code>RegisterServiceImpl.resolveUsername()</code> 方法会循环检测 <code>sys_user</code> 中是否存在同名用户，存在则自动追加序号（张三 → 张三1 → 张三2...）</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="37">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="83-配对生命周期管理">8.3 配对生命周期管理</h3>
+<p>配对功能是本系统的核心业务，实现了完整的状态机：</p>
+<pre><code>创建申请 (PENDING)
+    │
+    ├── 管理员审核通过 (APPROVED) → 记录 startTime → 建立正式指导关系
+    ├── 管理员审核拒绝 (REJECTED) → 流程结束
+    └── 创建者取消 (CANCELLED) → 记录 endTime
+        │
+APPROVED 状态也可以被取消 (CANCELLED)
+</code></pre>
+<p><strong>权限细节</strong>：</p>
+<ul>
+<li>创建配对时，系统根据当前登录用户角色自动绑定导师方或学生方身份</li>
+<li>导师角色自动填入 <code>teacherId = user.getTeacherId()</code>，无需前端传递</li>
+<li>学生角色同理自动填入 <code>studentId = user.getStudentId()</code></li>
+<li>管理员可指定任意师生组合</li>
+<li>取消配对的权限：管理员可取消任意配对；导师和学生只能取消涉及自己的配对</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="38">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="84-多对多项目与成果">8.4 多对多项目与成果</h3>
+<p>本系统支持一个项目/成果关联多名学生：</p>
+<p><strong>数据存储</strong>：</p>
+<ul>
+<li><code>project</code> 表保留 <code>student_id</code> 字段作为主学生（兼容历史数据）</li>
+<li><code>project_student</code> 关联表以 <code>(project_id, student_id)</code> 唯一索引存储多对多关系</li>
+<li><code>achievement</code> / <code>achievement_student</code> 同理</li>
+</ul>
+<p><strong>数据一致性校验</strong>：</p>
+<ul>
+<li>创建项目/成果时，系统会校验所选学生的 <code>student_id</code> 必须在 <code>matching</code> 表中存在与该导师的 <code>APPROVED</code> 状态记录</li>
+<li>即：<strong>只有已配对通过的学生才能被导师关联到项目或成果中</strong></li>
+</ul>
+<p><strong>列表查询的智慧回退</strong>：</p>
+<ul>
+<li>优先从 <code>project_student</code> 关联表 JOIN 查询学生信息</li>
+<li>若关联表不存在或无数据，自动回退到 <code>project.student_id</code> 字段</li>
+<li>这种设计保证了向后兼容性（从单学生到多学生的平滑演进）</li>
+</ul>
+</div>
+</section>
+<section class="slide" data-index="39">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="85-成果文件管理">8.5 成果文件管理</h3>
+<p><strong>上传</strong>：</p>
+<pre><code class="language-java">SecurityUtils.saveFile(file, uploadPath)
+</code></pre>
+<ol>
+<li>校验文件扩展名（仅 6 种白名单）</li>
+<li>使用 UUID 重命名文件，防止文件名冲突和路径穿越</li>
+<li>存储到配置的 <code>file.upload.path</code> 目录（默认 <code>upload/</code>）</li>
+<li>返回 URL 路径如 <code>/upload/a1b2c3d4.pdf</code></li>
+<li>Spring MVC 通过 <code>WebMvcConfig</code> 映射 <code>/upload/**</code> 到本地目录，实现文件直接访问</li>
+</ol>
+<p><strong>编辑</strong>：</p>
+<ul>
+<li>重新上传文件时，自动删除旧文件（物理删除）</li>
+<li>编辑仅限上传者本人或管理员</li>
+</ul>
+<p><strong>删除</strong>：</p>
+<ul>
+<li>管理员可删除任意成果</li>
+<li>普通用户只能删除自己上传的成果</li>
+<li>删除时自动清理关联的物理文件</li>
+</ul>
+<p><strong>editable 标记</strong>：
+成果列表接口返回 <code>editable: true/false</code>，前端根据该字段决定是否展示编辑/删除按钮，避免了前端重复判断权限。</p>
+</div>
+</section>
+<section class="slide" data-index="40">
+<div class="slide-header"><span class="slide-section-tag">八、关键功能详解</span></div><div class="slide-body">
+<h3 id="86-数据库增量迁移">8.6 数据库增量迁移</h3>
+<p><code>DatabaseSchemaMigration</code> 在应用启动时自动执行（<code>@Profile(&quot;!test&quot;)</code> 排除测试环境）：</p>
+<ol>
+<li><strong><code>ensureProjectStudentTable()</code></strong>：若 <code>project_student</code> 表不存在则创建；自动将 <code>project</code> 表中 <code>student_id IS NOT NULL</code> 的数据迁移到关联表</li>
+<li><strong><code>ensureAchievementUserIdColumn()</code></strong>：检测 <code>achievement</code> 表是否有 <code>user_id</code> 字段，若无则 ALTER TABLE 添加；自动从 teacher.student 反向填充 user_id</li>
+<li><strong><code>ensureAchievementStudentTable()</code></strong>：同理创建 <code>achievement_student</code> 关联表并自动迁移数据</li>
+</ol>
+<blockquote>
+<p><strong>设计价值</strong>：这是生产环境部署的&quot;零停机升级&quot;方案。老版本数据库无需手动执行 SQL，应用启动时自动完成结构升级和数据迁移。</p>
+</blockquote>
+</div>
+</section>
+<section class="slide slide-divider" data-index="41">
+<div class="slide-body">
+<h2 id="九部署与运维">九、部署与运维</h2>
+</div>
+</section>
+<section class="slide" data-index="42">
+<div class="slide-header"><span class="slide-section-tag">九、部署与运维</span></div><div class="slide-body">
+<h3 id="91-生产环境部署架构">9.1 生产环境部署架构</h3>
+<pre><code>                  Internet
+                     │
+              ┌──────▼──────┐
+              │   Nginx :80 │
+              │ 静态文件服务 │
+              │   反向代理  │
+              └──┬──────┬───┘
+         /       │      │ /api/ &amp; /upload/
+    ┌────▼──┐    │   ┌──▼───────────┐
+    │ dist/ │    │   │  Spring Boot │
+    │ 前端  │    │   │  :8081       │
+    │ 静态  │    │   └──────┬───────┘
+    └───────┘    │          │
+                 │   ┌──────▼───────┐
+                 │   │   MySQL 8.0  │
+                 │   │   :3306      │
+                 │   └──────────────┘
+</code></pre>
+</div>
+</section>
+<section class="slide" data-index="43">
+<div class="slide-header"><span class="slide-section-tag">九、部署与运维</span></div><div class="slide-body">
+<h3 id="92-配置要点">9.2 配置要点</h3>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>位置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据库连接</td>
+<td><code>application.properties</code></td>
+<td>url、username、password</td>
+</tr>
+<tr>
+<td>服务端口</td>
+<td><code>application.properties</code></td>
+<td>默认 8081</td>
+</tr>
+<tr>
+<td>JWT 密钥</td>
+<td><code>application.properties</code></td>
+<td>生产环境务必更换为随机长字符串</td>
+</tr>
+<tr>
+<td>文件上传路径</td>
+<td><code>application.properties</code></td>
+<td><code>file.upload.path</code>，需确保目录可写</td>
+</tr>
+<tr>
+<td>前端代理</td>
+<td><code>vite.config.js</code></td>
+<td>开发环境代理 <code>/api</code> → <code>localhost:8081</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="44">
+<div class="slide-header"><span class="slide-section-tag">九、部署与运维</span></div><div class="slide-body">
+<h3 id="93-部署步骤">9.3 部署步骤</h3>
+<ol>
+<li><strong>初始化数据库</strong>：执行 <code>sql/supervisor_db.sql</code>（建库 + 建表 + 基础数据）</li>
+<li><strong>配置连接信息</strong>：修改 <code>application.properties</code> 中的数据库连接串和密码</li>
+<li><strong>打包后端</strong>：<code>mvn clean package -DskipTests</code> → 生成 <code>target/supervisorstu-0.0.1-SNAPSHOT.jar</code></li>
+<li><strong>启动后端</strong>：<code>java -jar supervisorstu-0.0.1-SNAPSHOT.jar</code></li>
+<li><strong>构建前端</strong>：<code>cd frontend &amp;&amp; npm install &amp;&amp; npm run build</code> → 生成 <code>dist/</code> 目录</li>
+<li><strong>配置 Nginx</strong>：将 <code>dist/</code> 作为静态根目录，反向代理 <code>/api/</code> 和 <code>/upload/</code> 到后端</li>
+</ol>
+</div>
+</section>
+<section class="slide slide-divider" data-index="45">
+<div class="slide-body">
+<h2 id="十项目总结与展望">十、项目总结与展望</h2>
+</div>
+</section>
+<section class="slide" data-index="46">
+<div class="slide-header"><span class="slide-section-tag">十、项目总结与展望</span></div><div class="slide-body">
+<h3 id="101-项目成果">10.1 项目成果</h3>
+<p>通过本项目的开发，完成了一个从数据库设计到前后端实现的 <strong>Web 应用</strong>，核心成果如下：</p>
+<ol>
+<li><strong>10 张数据表</strong>：覆盖用户、导师、学生、配对、项目、成果、日志等业务领域</li>
+<li><strong>8 个 Controller</strong>：实现了 30+ 个 RESTful API 端点</li>
+<li><strong>9 个 Service</strong>：封装了完整的业务逻辑与权限控制</li>
+<li><strong>8 个前端页面</strong>：基于 Vue 3 + Element Plus 构建的管理后台</li>
+<li><strong>安全体系</strong>：JWT 认证 + BCrypt 密码加密 + RBAC 权限控制 + 图形验证码</li>
+<li><strong>运维友好</strong>：数据库自动迁移、逻辑删除、全局异常处理、统一响应格式</li>
+</ol>
+</div>
+</section>
+<section class="slide" data-index="47">
+<div class="slide-header"><span class="slide-section-tag">十、项目总结与展望</span></div><div class="slide-body">
+<h3 id="102-技术总结">10.2 技术总结</h3>
+<table>
+<thead>
+<tr>
+<th>亮点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>自研验证码</strong></td>
+<td>无任何第三方依赖，纯 Java AWT 实现图形验证码</td>
+</tr>
+<tr>
+<td><strong>邮箱登录</strong></td>
+<td>采用直觉化的邮箱 + 密码 + 验证码登录</td>
+</tr>
+<tr>
+<td><strong>账号-身份解耦</strong></td>
+<td>sys_user（认证）+ teacher/student（业务），职责清晰</td>
+</tr>
+<tr>
+<td><strong>多对多关联设计</strong></td>
+<td>project_student、achievement_student 关联表 + 联合唯一索引</td>
+</tr>
+<tr>
+<td><strong>数据库自动迁移</strong></td>
+<td>启动时检测 → 补全表结构 → 自动迁移历史数据</td>
+</tr>
+<tr>
+<td><strong>智能回退查询</strong></td>
+<td>关联表优先，不存在时回退到旧字段，保证平滑演进</td>
+</tr>
+<tr>
+<td><strong>editable 标记</strong></td>
+<td>服务端计算编辑权限，前端无需重复判断</td>
+</tr>
+<tr>
+<td><strong>DTO/VO/Entity 分离</strong></td>
+<td>三层对象模型，接口清晰，防止敏感信息泄露</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="48">
+<div class="slide-header"><span class="slide-section-tag">十、项目总结与展望</span></div><div class="slide-body">
+<h3 id="103-不足与改进">10.3 不足与改进</h3>
+<table>
+<thead>
+<tr>
+<th>不足</th>
+<th>改进方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件上传仅支持本地存储</td>
+<td>接入阿里云 OSS 或 MinIO 对象存储</td>
+</tr>
+<tr>
+<td>缺少操作日志记录到数据库</td>
+<td>完善 sys_log 表的写入逻辑</td>
+</tr>
+<tr>
+<td>无消息通知机制</td>
+<td>引入 WebSocket 或邮件通知，配对状态变更时实时通知</td>
+</tr>
+<tr>
+<td>缺少数据导出功能</td>
+<td>支持 Excel 导出导师/学生/项目/成果报表</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide" data-index="49">
+<div class="slide-header"><span class="slide-section-tag">十、项目总结与展望</span></div><div class="slide-body">
+<h3 id="104-学习收获">10.4 学习收获</h3>
+<p>本项目的开发实践涵盖了 Java Web 开发的核心知识点：</p>
+<ul>
+<li><strong>Spring Boot 3.5</strong> 的项目搭建与自动配置原理</li>
+<li><strong>MyBatis Plus</strong> 的 Lambda 查询包装器、分页插件、逻辑删除、条件构造器</li>
+<li><strong>Spring Security + JWT</strong> 的无状态认证体系</li>
+<li><strong>Vue 3 Composition API</strong> 的响应式编程思想</li>
+<li><strong>前后端分离</strong> 的协作模式与跨域处理</li>
+<li><strong>RESTful API</strong> 设计规范与统一响应格式</li>
+<li><strong>数据库设计</strong> 的范式、索引优化、多对多关联</li>
+<li><strong>文件上传</strong> 的安全校验、存储与清理</li>
+</ul>
+</div>
+</section>
+</div>
+<nav class="nav-bar">
+  <button class="nav-btn" id="prevBtn">上一页</button>
+  <span class="slide-counter" id="slideCounter">1 / 1</span>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="fullscreen-btn" id="fsBtn">全屏</button>
+    <button class="nav-btn" id="nextBtn">下一页</button>
+  </div>
+</nav>
+
+<script>
+(function () {
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  if (!total) return;
+
+  let current = 0;
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counter = document.getElementById('slideCounter');
+  const progress = document.getElementById('progressBar');
+  const fsBtn = document.getElementById('fsBtn');
+  const presentation = document.getElementById('presentation');
+
+  function goTo(index) {
+    if (index < 0 || index >= total) return;
+    current = index;
+    slides.forEach(function (s, i) {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i < current) s.classList.add('prev');
+    });
+    if (counter) counter.textContent = (current + 1) + ' / ' + total;
+    if (progress) progress.style.width = ((current + 1) / total * 100) + '%';
+    if (prevBtn) prevBtn.disabled = current === 0;
+    if (nextBtn) nextBtn.disabled = current === total - 1;
+    const bodies = slides[current].querySelectorAll('.slide-body');
+    bodies.forEach(function (b) { b.scrollTop = 0; });
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  if (prevBtn) prevBtn.addEventListener('click', prev);
+  if (nextBtn) nextBtn.addEventListener('click', next);
+
+  if (fsBtn) {
+    fsBtn.addEventListener('click', function () {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function () {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      goTo(total - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (fsBtn) fsBtn.click();
+    }
+  });
+
+  if (presentation) {
+    presentation.addEventListener('click', function (e) {
+      if (e.target.closest('.nav-bar, a, button, input, select, textarea')) return;
+      const x = e.clientX / window.innerWidth;
+      if (x < 0.25) prev();
+      else if (x > 0.75) next();
+    });
+  }
+
+  document.querySelectorAll('.slide-toc a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      const id = decodeURIComponent(a.getAttribute('href').slice(1));
+      const target = document.getElementById(id);
+      if (target) {
+        const slide = target.closest('.slide');
+        if (slide) {
+          const idx = Array.prototype.indexOf.call(slides, slide);
+          if (idx >= 0) goTo(idx);
+        }
+      }
+    });
+  });
+
+  goTo(0);
+})();
+</script>
+</body>
+</html>
